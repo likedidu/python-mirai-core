@@ -1,6 +1,7 @@
 from typing import Dict
 import aiohttp
 from aiohttp import client_exceptions
+from multidict import MultiDict
 from pathlib import Path
 from .log import create_logger
 from io import BytesIO
@@ -114,16 +115,15 @@ class HttpClient:
         if data is None:
             data = dict()
         data['img'] = BytesIO(open(file, 'rb').read())
-
         headers = headers or {}
         headers["Content-Type"] = "multipart/form-data"
-
-        self.logger.debug(f'upload {url} with file: {file}')
-        try:
-            response = await self.session.post(self.base_url + url,
-                                               headers=headers, data=data)
-        except client_exceptions.ClientConnectorError:
-            raise NetworkException('Unable to reach Mirai console')
+        with aiohttp.MultipartWriter() as mpwriter:
+            mpwriter.append_form(data, MultiDict(headers))
+            self.logger.debug(f'upload {url} with file: {file}')
+            try:
+                response = await self.session.post(self.base_url + url, data=mpwriter)
+            except client_exceptions.ClientConnectorError:
+                raise NetworkException('Unable to reach Mirai console')
         self.logger.debug(f'Image uploaded: {response.text}')
         return await response.json()
 
