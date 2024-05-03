@@ -4,7 +4,7 @@ from typing import List, Dict, Optional, overload, Iterable, Union, Literal, Typ
 from pydantic import Field, validator, HttpUrl, BaseModel, Extra, root_validator
 from .Constant import qq_emoji_text_list
 import datetime
-from collections import MutableSequence
+from collections.abc import MutableSequence
 import json
 
 __all__ = [
